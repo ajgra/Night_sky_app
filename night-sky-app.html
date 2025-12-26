@@ -186,6 +186,10 @@
             background: rgba(255, 82, 82, 0.1);
             border-radius: 5px;
             border-left: 3px solid #ff5252;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 12px;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -230,11 +234,11 @@
         </div>
 
         <div id="calibrationPanel" class="hidden">
-            <h2>📱 Device Setup</h2>
-            <p>To identify objects in the night sky:</p>
-            <p>1. Allow location access<br>
-            2. Allow motion sensors<br>
-            3. Point your phone at the sky</p>
+            <h2>🌟 Night Sky Setup</h2>
+            <p>This app needs two permissions:</p>
+            <p><strong>1. Location</strong> - To know where you are<br>
+            <strong>2. Motion Sensors</strong> - To track phone direction</p>
+            <p>Click below and allow both when asked!</p>
             <button id="startBtn">Get Started</button>
         </div>
 

@@ -60,46 +60,52 @@ class NightSkyApp {
 
     showCalibration() {
         this.calibrationPanel.classList.remove('hidden');
-        this.startBtn.addEventListener('click', () => {
+        this.startBtn.addEventListener('click', async () => {
             this.calibrationPanel.classList.add('hidden');
-            this.initialize();
+            
+            // Request orientation permission FIRST (must be immediate on iOS)
+            try {
+                await this.requestOrientationPermission();
+                await this.initialize();
+            } catch (error) {
+                this.showError(error.message);
+                this.loadingScreen.classList.add('hidden');
+            }
         });
     }
 
     async initialize() {
-        try {
-            this.loadingScreen.classList.remove('hidden');
-            this.updateStatus('Requesting location...');
+        this.loadingScreen.classList.remove('hidden');
+        this.updateStatus('Getting your location...');
+        
+        // Get location
+        await this.getLocation();
+        
+        // Load star data
+        this.updateStatus('Loading stars...');
+        this.stars = getStars();
+        
+        // Start orientation tracking
+        this.startOrientationTracking();
+        
+        // Start rendering
+        this.loadingScreen.classList.add('hidden');
+        this.objectInfo.classList.remove('hidden');
+        this.updateStatus('Ready! Point at sky');
+        this.render();
+    }
+
+    async requestOrientationPermission() {
+        // Check if this is iOS 13+ that requires permission
+        if (typeof DeviceOrientationEvent !== 'undefined' && 
+            typeof DeviceOrientationEvent.requestPermission === 'function') {
             
-            // Get location
-            await this.getLocation();
-            
-            // Load star data
-            this.updateStatus('Loading star catalog...');
-            this.stars = getStars();
-            
-            // Request device orientation permission (iOS 13+)
-            if (typeof DeviceOrientationEvent !== 'undefined' && 
-                typeof DeviceOrientationEvent.requestPermission === 'function') {
-                const permission = await DeviceOrientationEvent.requestPermission();
-                if (permission !== 'granted') {
-                    throw new Error('Device orientation permission denied');
-                }
+            const permission = await DeviceOrientationEvent.requestPermission();
+            if (permission !== 'granted') {
+                throw new Error('Please allow motion sensors in your browser settings');
             }
-            
-            // Start orientation tracking
-            this.startOrientationTracking();
-            
-            // Start rendering
-            this.loadingScreen.classList.add('hidden');
-            this.objectInfo.classList.remove('hidden');
-            this.updateStatus('Ready! Point at the sky');
-            this.render();
-            
-        } catch (error) {
-            this.showError(error.message);
-            this.loadingScreen.classList.add('hidden');
         }
+        // For non-iOS or older iOS, permission not needed
     }
 
     async getLocation() {
