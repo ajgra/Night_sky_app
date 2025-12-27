@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compass Diagnostic</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            padding: 20px;
+        }
+        h1 { color: #4CAF50; }
+        .section {
+            background: #222;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+        .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+            width: 100%;
+        }
+        .label {
+            color: #888;
+            font-size: 14px;
+        }
+        .instruction {
+            background: rgba(76, 175, 80, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧭 Compass Diagnostic</h1>
+    
+    <button id="startBtn">Start Tracking</button>
+    
+    <div class="instruction">
+        <strong>Instructions:</strong><br>
+        1. Click "Start Tracking"<br>
+        2. Point your phone in different directions<br>
+        3. Compare these values to your phone's compass app<br>
+        4. Tell me which value matches your real compass
+    </div>
+
+    <div class="section">
+        <div class="label">event.alpha (standard)</div>
+        <div class="value" id="alpha">--</div>
+    </div>
+
+    <div class="section">
+        <div class="label">event.webkitCompassHeading (iOS)</div>
+        <div class="value" id="webkit">--</div>
+    </div>
+
+    <div class="section">
+        <div class="label">Alpha inverted (360 - alpha)</div>
+        <div class="value" id="inverted">--</div>
+    </div>
+
+    <div class="section">
+        <div class="label">What direction are you facing?</div>
+        <div style="margin: 10px 0;">
+            <button onclick="testDirection('North', 0)">👆 NORTH</button>
+            <button onclick="testDirection('East', 90)">👉 EAST</button>
+            <button onclick="testDirection('South', 180)">👇 SOUTH</button>
+            <button onclick="testDirection('West', 270)">👈 WEST</button>
+        </div>
+        <div id="results" style="margin-top: 15px;"></div>
+    </div>
+
+    <script>
+        let currentAlpha = 0;
+        let currentWebkit = 0;
+
+        document.getElementById('startBtn').addEventListener('click', async () => {
+            if (typeof DeviceOrientationEvent !== 'undefined' && 
+                typeof DeviceOrientationEvent.requestPermission === 'function') {
+                const permission = await DeviceOrientationEvent.requestPermission();
+                if (permission !== 'granted') {
+                    alert('Permission denied');
+                    return;
+                }
+            }
+
+            // Try regular deviceorientation
+            window.addEventListener('deviceorientation', (event) => {
+                if (event.alpha !== null) {
+                    currentAlpha = event.alpha;
+                    document.getElementById('alpha').textContent = Math.round(event.alpha) + '°';
+                    document.getElementById('inverted').textContent = Math.round(360 - event.alpha) + '°';
+                }
+            });
+
+            // Try webkit compass heading (iOS)
+            window.addEventListener('deviceorientation', (event) => {
+                if (event.webkitCompassHeading !== undefined) {
+                    currentWebkit = event.webkitCompassHeading;
+                    document.getElementById('webkit').textContent = Math.round(event.webkitCompassHeading) + '°';
+                } else {
+                    document.getElementById('webkit').textContent = 'Not available';
+                }
+            });
+
+            // Also try absolute orientation
+            window.addEventListener('deviceorientationabsolute', (event) => {
+                if (event.alpha !== null) {
+                    // This is the "true" compass heading on some devices
+                    console.log('Absolute alpha:', event.alpha);
+                }
+            });
+
+            document.getElementById('startBtn').textContent = '✓ Tracking...';
+            document.getElementById('startBtn').style.background = '#45a049';
+        });
+
+        function testDirection(dirName, expectedDegrees) {
+            const results = document.getElementById('results');
+            
+            const alphaError = Math.abs(currentAlpha - expectedDegrees);
+            const webkitError = currentWebkit ? Math.abs(currentWebkit - expectedDegrees) : 999;
+            const invertedError = Math.abs((360 - currentAlpha) - expectedDegrees);
+            
+            let html = `<div style="background: rgba(76,175,80,0.1); padding: 10px; border-radius: 5px; margin: 10px 0;">`;
+            html += `<strong>Testing: ${dirName} (should be ${expectedDegrees}°)</strong><br>`;
+            html += `<div style="margin: 5px 0; padding: 5px;">`;
+            html += `Alpha: ${Math.round(currentAlpha)}° (error: ${Math.round(alphaError)}°)<br>`;
+            if (currentWebkit) {
+                html += `Webkit: ${Math.round(currentWebkit)}° (error: ${Math.round(webkitError)}°)<br>`;
+            }
+            html += `Inverted: ${Math.round(360 - currentAlpha)}° (error: ${Math.round(invertedError)}°)`;
+            html += `</div>`;
+            
+            // Determine best match
+            const errors = [
+                { name: 'alpha', error: alphaError },
+                { name: 'webkit', error: webkitError },
+                { name: 'inverted', error: invertedError }
+            ];
+            const best = errors.sort((a, b) => a.error - b.error)[0];
+            
+            html += `<div style="color: #4CAF50; margin-top: 10px;">`;
+            html += `✓ Best match: <strong>${best.name}</strong> (${Math.round(best.error)}° error)`;
+            html += `</div></div>`;
+            
+            results.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
