@@ -42,16 +42,20 @@ class NightSkyMapZoom {
         
         // Constellation colors
         this.constellationColors = {
-            'Ursa Major': '#FF6B6B',
-            'Orion': '#4ECDC4',
-            'Cassiopeia': '#FFD93D',
-            'Leo': '#FF9F1C',
-            'Scorpius': '#C44569',
-            'Lyra': '#5B8C5A',
-            'Cygnus': '#6C5CE7',
-            'Aquila': '#00B894',
-            'Taurus': '#E17055',
-            'Gemini': '#A29BFE'
+            'Ursa Major': '#FF6B6B',      // Red
+            'Orion': '#4ECDC4',           // Cyan
+            'Cassiopeia': '#FFD93D',      // Yellow
+            'Leo': '#FF9F1C',             // Orange
+            'Scorpius': '#C44569',        // Purple-Red
+            'Lyra': '#5B8C5A',            // Green
+            'Cygnus': '#6C5CE7',          // Purple
+            'Aquila': '#00B894',          // Teal
+            'Taurus': '#E17055',          // Orange-Red
+            'Gemini': '#A29BFE',          // Light Purple
+            'Andromeda': '#FF6EC7',       // Pink/Magenta
+            'Pegasus': '#74B9FF',         // Sky Blue
+            'Perseus': '#FECA57',         // Yellow-Gold
+            'Auriga': '#FFA502'           // Amber/Gold
         };
         
         // Animation
